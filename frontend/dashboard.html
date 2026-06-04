@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Records | Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        /*Navbar*/
+        nav {
+            background: #1e293b;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #334155;
+        }
+
+        nav h1 { font-size: 1.2rem; color: #f8fafc; }
+
+        .nav-right { display: flex; align-items: center; gap: 1rem; }
+
+        .teacher-name { color: #94a3b8; font-size: 0.9rem; }
+
+        .logout-btn {
+            padding: 0.4rem 1rem;
+            background: transparent;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            width: auto;
+            margin: 0;
+        }
+
+        .logout-btn:hover { border-color: #ef4444; color: #ef4444; background: transparent; }
+
+        /*Layout*/
+        .main { padding: 2rem; max-width: 1100px; margin: 0 auto; }
+
+        .grid { display: grid; grid-template-columns: 340px 1fr; gap: 1.5rem; align-items: start; }
+
+        /*Cards*/
+        .card {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid #334155;
+        }
+
+        .card h2 { font-size: 1rem; font-weight: 600; margin-bottom: 1.2rem; color: #f8fafc; }
+
+        /*Form*/
+        .form-group { margin-bottom: 1rem; }
+
+        label { display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.3rem; }
+
+        input {
+            width: 100%;
+            padding: 0.65rem 0.9rem;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #f8fafc;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border 0.2s;
+        }
+
+        input:focus { border-color: #3b82f6; }
+
+        .btn {
+            width: 100%;
+            padding: 0.7rem;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 0.3rem;
+        }
+
+        .btn:hover { background: #2563eb; }
+
+        .btn.danger { background: transparent; border: 1px solid #ef4444; color: #ef4444; margin-top: 0.5rem; }
+        .btn.danger:hover { background: #ef4444; color: white; }
+
+        /*Search & Sort bar*/
+        .toolbar {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.2rem;
+            flex-wrap: wrap;
+        }
+
+        .toolbar input {
+            flex: 1;
+            min-width: 160px;
+        }
+
+        .toolbar select {
+            padding: 0.65rem 0.9rem;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #f8fafc;
+            font-size: 0.9rem;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .toolbar .btn { width: auto; padding: 0.65rem 1.2rem; margin: 0; }
+
+        /*Table*/
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+        }
+
+        th {
+            text-align: left;
+            padding: 0.65rem 1rem;
+            color: #64748b;
+            font-weight: 600;
+            border-bottom: 1px solid #334155;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #1e293b;
+            color: #cbd5e1;
+        }
+
+        tr:hover td { background: #1e293b; }
+
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        .badge.high { background: #14532d; color: #86efac; }
+        .badge.mid  { background: #713f12; color: #fde68a; }
+        .badge.low  { background: #7f1d1d; color: #fca5a5; }
+
+        .delete-btn {
+            background: transparent;
+            border: none;
+            color: #475569;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            transition: color 0.2s;
+            width: auto;
+            margin: 0;
+        }
+
+        .delete-btn:hover { color: #ef4444; background: transparent; }
+
+        .empty { text-align: center; color: #475569; padding: 3rem; }
+
+        /*Messages*/
+        .alert {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .alert.error { background: #7f1d1d; color: #fca5a5; }
+        .alert.success { background: #14532d; color: #86efac; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <h1>📋 Student Records</h1>
+        <div class="nav-right">
+            <span class="teacher-name" id="teacher-name"></span>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="main">
+        <div class="grid">
+
+            <!--Add Student Form-->
+            <div class="card">
+                <h2>Add New Student</h2>
+                <div id="form-alert" class="alert"></div>
+                <div class="form-group">
+                    <label>Student ID (11 digits)</label>
+                    <input type="text" id="f-id" placeholder="12345678901" maxlength="11">
+                </div>
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="f-name" placeholder="John Doe">
+                </div>
+                <div class="form-group">
+                    <label>Coursework Mark (0–50)</label>
+                    <input type="number" id="f-cw" placeholder="0" min="0" max="50">
+                </div>
+                <div class="form-group">
+                    <label>Final Exam Mark (0–50)</label>
+                    <input type="number" id="f-exam" placeholder="0" min="0" max="50">
+                </div>
+                <button class="btn" onclick="addStudent()">Add Student</button>
+            </div>
+
+            <!--Students Table-->
+            <div class="card">
+                <h2>All Students</h2>
+
+                <div class="toolbar">
+                    <input type="text" id="search-id" placeholder="Search by student ID...">
+                    <select id="search-method">
+                        <option value="linear">Linear Search</option>
+                        <option value="binary">Binary Search</option>
+                    </select>
+                    <button class="btn" onclick="searchStudent()">Search</button>
+                    <button class="btn" style="background:#475569" onclick="loadStudents()">Clear</button>
+                </div>
+
+                <div style="margin-bottom:1rem; display:flex; gap:0.5rem; flex-wrap:wrap;">
+                    <span style="font-size:0.8rem; color:#64748b; align-self:center;">Sort by:</span>
+                    <button class="btn" style="width:auto;padding:0.4rem 0.9rem;margin:0;font-size:0.8rem" onclick="loadStudents('name')">Name</button>
+                    <button class="btn" style="width:auto;padding:0.4rem 0.9rem;margin:0;font-size:0.8rem" onclick="loadStudents('id')">ID</button>
+                    <button class="btn" style="width:auto;padding:0.4rem 0.9rem;margin:0;font-size:0.8rem" onclick="loadStudents('total')">Total Mark</button>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Name</th>
+                            <th>Coursework</th>
+                            <th>Exam</th>
+                            <th>Total</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="students-table">
+                        <tr><td colspan="6" class="empty">No students yet</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const API = "http://localhost:8000"
+        const token = localStorage.getItem('token')
+
+        // redirect to login if not authenticated
+        if (!token) window.location.href = 'index.html'
+
+        function authHeaders() {
+            return {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token')
+            window.location.href = 'index.html'
+        }
+
+        function getBadge(total) {
+            if (total >= 70) return `<span class="badge high">${total}</span>`
+            if (total >= 50) return `<span class="badge mid">${total}</span>`
+            return `<span class="badge low">${total}</span>`
+        }
+
+        function renderStudents(students) {
+            const tbody = document.getElementById('students-table')
+            if (!students.length) {
+                tbody.innerHTML = `<tr><td colspan="6" class="empty">No students found</td></tr>`
+                return
+            }
+            tbody.innerHTML = students.map(s => `
+                <tr>
+                    <td>${s.student_id}</td>
+                    <td>${s.name}</td>
+                    <td>${s.coursework_mark}</td>
+                    <td>${s.final_exam_mark}</td>
+                    <td>${getBadge(s.total_mark)}</td>
+                    <td><button class="delete-btn" onclick="deleteStudent('${s.student_id}')">🗑</button></td>
+                </tr>
+            `).join('')
+        }
+
+        function showFormAlert(msg, type) {
+            const el = document.getElementById('form-alert')
+            el.textContent = msg
+            el.className = `alert ${type}`
+            el.style.display = 'block'
+            setTimeout(() => el.style.display = 'none', 3000)
+        }
+
+        async function loadStudents(sort_by = 'name') {
+            document.getElementById('search-id').value = ''
+            try {
+                const res = await fetch(`${API}/students/?sort_by=${sort_by}`, {
+                    headers: authHeaders()
+                })
+                if (res.status === 401) return logout()
+                const data = await res.json()
+                renderStudents(data)
+            } catch {
+                console.error('failed to load students')
+            }
+        }
+
+        async function addStudent() {
+            const student_id = document.getElementById('f-id').value.trim()
+            const name = document.getElementById('f-name').value.trim()
+            const coursework_mark = parseInt(document.getElementById('f-cw').value)
+            const final_exam_mark = parseInt(document.getElementById('f-exam').value)
+
+            if (!student_id || !name || isNaN(coursework_mark) || isNaN(final_exam_mark))
+                return showFormAlert('please fill in all fields', 'error')
+
+            try {
+                const res = await fetch(`${API}/students/`, {
+                    method: 'POST',
+                    headers: authHeaders(),
+                    body: JSON.stringify({ student_id, name, coursework_mark, final_exam_mark })
+                })
+                const data = await res.json()
+                if (!res.ok) return showFormAlert(data.detail || 'failed to add student', 'error')
+
+                showFormAlert('student added successfully!', 'success')
+                document.getElementById('f-id').value = ''
+                document.getElementById('f-name').value = ''
+                document.getElementById('f-cw').value = ''
+                document.getElementById('f-exam').value = ''
+                loadStudents()
+
+            } catch {
+                showFormAlert('could not connect to server', 'error')
+            }
+        }
+
+        async function searchStudent() {
+            const student_id = document.getElementById('search-id').value.trim()
+            const method = document.getElementById('search-method').value
+
+            if (!student_id) return loadStudents()
+
+            try {
+                const res = await fetch(`${API}/students/search?target_id=${student_id}&method=${method}`, {
+                    headers: authHeaders()
+                })
+                const data = await res.json()
+                if (!res.ok) {
+                    document.getElementById('students-table').innerHTML =
+                        `<tr><td colspan="6" class="empty">${data.detail}</td></tr>`
+                    return
+                }
+                renderStudents([data])
+            } catch {
+                console.error('search failed')
+            }
+        }
+
+        async function deleteStudent(student_id) {
+            if (!confirm(`delete student ${student_id}?`)) return
+            try {
+                const res = await fetch(`${API}/students/${student_id}`, {
+                    method: 'DELETE',
+                    headers: authHeaders()
+                })
+                if (!res.ok) return
+                loadStudents()
+            } catch {
+                console.error('delete failed')
+            }
+        }
+
+        // load teacher name from token
+        function parseJWT(token) {
+            try {
+                return JSON.parse(atob(token.split('.')[1]))
+            } catch { return null }
+        }
+
+        // init
+        loadStudents()
+    </script>
+</body>
+</html>
